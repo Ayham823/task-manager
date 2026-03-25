@@ -33,8 +33,7 @@ jobs:
     - name: Run migrations
       run: python manage.py migrate
       env:
-       CI: true
+        CI: true
 
     - name: Run tests
-      run: |
-        python manage.py test
+      run: python manage.py test
