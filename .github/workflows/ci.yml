@@ -31,8 +31,9 @@ jobs:
         pip install -r requirements.txt
 
     - name: Run migrations
-      run: |
-        python manage.py migrate
+      run: python manage.py migrate
+      env:
+       CI: true
 
     - name: Run tests
       run: |
