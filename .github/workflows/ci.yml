@@ -66,3 +66,5 @@ jobs:
           docker rm web || true &&
           docker run -d --name web --link db -p 8000:8000 ${{ secrets.DOCKER_USERNAME }}/task-manager:latest
         "
+
+        
