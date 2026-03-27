@@ -54,17 +54,19 @@ jobs:
     - name: Set up SSH key
       run: |
         mkdir -p ~/.ssh
-        printf "%s" "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
+        echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
         ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
 
     - name: Deploy to EC2
       run: |
-        ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} "
+        ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} "
           docker pull ${{ secrets.DOCKER_USERNAME }}/task-manager:latest &&
           docker stop web || true &&
           docker rm web || true &&
-          docker run -d --name web --link db -p 8000:8000 ${{ secrets.DOCKER_USERNAME }}/task-manager:latest
+          docker run -d \
+            --name web \
+            --link db \
+            -p 8000:8000 \
+            ${{ secrets.DOCKER_USERNAME }}/task-manager:latest
         "
-
-        
