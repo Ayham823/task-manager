@@ -19,46 +19,48 @@ jobs:
           - 5432:5432
 
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: "3.13"
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.13"
 
-    - name: Install dependencies
-      run: |
-        pip install -r requirements.txt
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
 
-    - name: Run migrations
-      run: python manage.py migrate
-      env:
-        CI: true
+      - name: Run migrations
+        run: python manage.py migrate
+        env:
+          CI: true
 
-    - name: Run tests
-      run: python manage.py test
+      - name: Run tests
+        run: python manage.py test
+        env:
+          CI: true
 
-    - name: Build Docker image
-      run: docker build -t task-manager .
+      - name: Build Docker image
+        run: docker build -t task-manager .
 
-    - name: Login to Docker Hub
-      run: |
-        echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+      - name: Login to Docker Hub
+        run: |
+          echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
-    - name: Tag Docker image
-      run: docker tag task-manager ${{ secrets.DOCKER_USERNAME }}/task-manager:latest
+      - name: Tag Docker image
+        run: docker tag task-manager ${{ secrets.DOCKER_USERNAME }}/task-manager:latest
 
-    - name: Push Docker image
-      run: docker push ${{ secrets.DOCKER_USERNAME }}/task-manager:latest
+      - name: Push Docker image
+        run: docker push ${{ secrets.DOCKER_USERNAME }}/task-manager:latest
 
-    - name: Deploy to EC2
-      uses: appleboy/ssh-action@v1.0.3
-      with:
-      host: ${{ secrets.EC2_HOST }}
-      username: ${{ secrets.EC2_USER }}
-      key: ${{ secrets.EC2_SSH_KEY }}
-      script: |
-           docker pull ${{ secrets.DOCKER_USERNAME }}/task-manager:latest
-           docker stop web || true
-           docker rm web || true
-           docker run -d --name web --link db -p 8000:8000 ${{ secrets.DOCKER_USERNAME }}/task-manager:latest
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            docker pull ${{ secrets.DOCKER_USERNAME }}/task-manager:latest
+            docker stop web || true
+            docker rm web || true
+            docker run -d --name web --link db -p 8000:8000 ${{ secrets.DOCKER_USERNAME }}/task-manager:latest
