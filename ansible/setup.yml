@@ -1,0 +1,63 @@
+- name: Configure Task Manager Server
+  hosts: web
+  become: yes
+
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    - name: Install required packages
+      apt:
+        name:
+          - docker.io
+          - python3-docker
+        state: present
+
+    - name: Start Docker service
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Add ubuntu user to docker group
+      user:
+        name: ubuntu
+        groups: docker
+        append: yes
+
+    - name: Pull PostgreSQL image
+      docker_image:
+        name: postgres
+        tag: "16"
+        source: pull
+
+    - name: Pull Task Manager image
+      docker_image:
+        name: ayham9659/task-manager
+        tag: latest
+        source: pull
+
+    - name: Run PostgreSQL container
+      docker_container:
+        name: db
+        image: postgres:16
+        state: started
+        restart_policy: always
+        env:
+          POSTGRES_DB: task_db
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        published_ports:
+          - "5432:5432"
+
+    - name: Run web container
+      docker_container:
+        name: web
+        image: ayham9659/task-manager:latest
+        state: started
+        restart_policy: always
+        links:
+          - "db"
+        published_ports:
+          - "8000:8000"
