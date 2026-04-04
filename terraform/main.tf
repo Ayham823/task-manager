@@ -64,4 +64,13 @@ resource "aws_instance" "task_manager_server" {
   tags = {
     Name = var.instance_name
   }
+
+  provisioner "local-exec" {
+    command = <<EOT
+      sleep 60
+      echo "[web]" > ../ansible/inventory.ini
+      echo "${self.public_ip} ansible_user=ubuntu ansible_ssh_private_key_file=/home/win11/.ssh/task-key.pem" >> ../ansible/inventory.ini
+      cd ../ansible && ansible-playbook -i inventory.ini setup.yml
+    EOT
+  }
 }
